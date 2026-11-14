@@ -1,0 +1,85 @@
+---
+import "@fontsource/bricolage-grotesque/latin-600.css";
+import "@fontsource/bricolage-grotesque/latin-800.css";
+import "@fontsource/source-sans-3/latin-400.css";
+import "@fontsource/source-sans-3/latin-600.css";
+import "@fontsource/source-sans-3/latin-700.css";
+import "../styles/site.css";
+import { fixLinks } from "../lib/core.js";
+import { typo } from "../lib/typo.js";
+import { SITE_URL, NOINDEX, CF_BEACON } from "../lib/site-config.js";
+const { title, desc, path, html, noindex = false, ld = [], nav = "", page = "" } = Astro.props;
+const body = typo(fixLinks(html));
+const canonical = SITE_URL + path;
+const robots = NOINDEX || noindex ? "noindex, follow" : "index, follow";
+const cur = n => (nav === n ? "page" : undefined);
+---
+<!DOCTYPE html>
+<html lang="fr" data-ix={noindex ? "0" : "1"}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content={desc}>
+<link rel="canonical" href={canonical}>
+<meta name="robots" content={robots}>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Argile Arena">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={desc}>
+<meta property="og:url" content={canonical}>
+<meta property="og:image" content={SITE_URL + "/og.png"}>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#22303f">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+{ld.map(o => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
+</head>
+<body data-page={page}>
+<script is:inline>document.documentElement.classList.add("js")</script>
+<a class="skip" href="#app">Aller au contenu</a>
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="Argile Arena, accueil">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><path d="M5 17 17 6l12 11v12H5z" fill="#fff"/><path d="M15 29l2-6-3-4 3-5" stroke="var(--accent)" stroke-width="2.4" fill="none" stroke-linejoin="round"/></svg>
+      Argile Arena
+    </a>
+    <div class="hdr-actions"><button class="hsearch" type="button" id="open-search" aria-label="Chercher une adresse"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"/><path d="M13 13l5 5"/></svg><span>Une adresse</span></button>
+    <button class="burger" type="button" aria-expanded="false" aria-controls="nav">Menu</button></div>
+    <nav class="main" id="nav" aria-label="Menu principal">
+      <a href="/" aria-current={cur("accueil")}>Mon adresse</a>
+      <a href="/guides/" aria-current={cur("guides")}>Fissures : que faire ?</a>
+      <a href="/aides/" aria-current={cur("aides")}>Aides</a>
+      <a href="/actualites/" aria-current={cur("actualites")}>Actualités</a>
+    </nav>
+  </div>
+</header>
+<div class="sbar" id="sbar" aria-hidden="true"><div class="wrap"><span class="sb-score"><b id="sb-n">0</b>/10</span><span class="lvl" id="sb-l"></span><nav class="sb-links" aria-label="Sur cette page"><a href="#actions" data-jumpto="actions">Que faire</a><a href="#questions" data-jumpto="questions">Affiner</a><a href="#details" data-jumpto="details">Détails</a></nav></div></div>
+<div class="ovl" id="ovl" hidden><div class="ovl-box" role="dialog" aria-modal="true" aria-labelledby="ovl-t"><div class="ovl-head"><p id="ovl-t" class="wz-q" style="margin:0">Quelle adresse ?</p><button type="button" class="linkbtn" id="ovl-x">Fermer</button></div>
+<div class="acwrap"><label for="q2" class="hidden">Votre adresse</label><input id="q2" class="acin" autocomplete="off" placeholder="Votre adresse ou votre commune" role="combobox" aria-expanded="false" aria-controls="q2-list" aria-autocomplete="list"><ul class="aclist" id="q2-list" role="listbox"></ul></div>
+<p class="note" style="margin-top:12px">Une adresse donne le niveau de votre maison ; une commune ouvre sa page.</p></div></div>
+<main id="app" set:html={body} />
+<footer>
+  <div class="wrap cols">
+    <div class="stack">
+      <strong style="font:800 20px var(--display);color:#fff">Argile Arena</strong>
+      <p>Le risque de fissure de votre maison, à partir des données publiques : carte officielle des argiles et arrêtés de catastrophe naturelle, complétés par vos réponses. Un indicateur, jamais une certitude.</p>
+      <p class="arena" style="color:#c9d1d8">Les sites Arena : <a href="https://ehpadarena.fr/">EHPAD Arena</a> · <a href="https://scolarena.fr/">Scol Arena</a> · <a href="https://eauarena.fr/">Eau Arena</a> · <a href="https://jobarena.org/">Job Arena</a></p>
+    </div>
+    <div><strong>Comprendre</strong><ul>
+      <li><a href="/fissure-maison/">Fissure maison : que faire ?</a></li>
+      <li><a href="/guides/">Tous les guides</a></li>
+      <li><a href="/fissure-maison/modeles-de-lettres/">Modèles de lettres</a></li>
+      <li><a href="/fissure-maison/fissurometre/">Fissuromètre à imprimer</a></li>
+      <li><a href="/argile/">Communes par département</a></li>
+      <li><a href="/methode/">Méthode de l'indice</a></li></ul></div>
+    <div><strong>Le site</strong><ul>
+      <li><a href="/actualites/">Actualités</a></li>
+      <li><a href="/a-propos/">À propos</a></li>
+      <li><a href="/mentions-legales/">Mentions légales</a></li>
+      <li><a href="/confidentialite/">Confidentialité</a></li></ul></div>
+  </div>
+</footer>
+<script>import "../scripts/app.js";</script>
+{CF_BEACON && <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: CF_BEACON })}></script>}
+</body>
+</html>

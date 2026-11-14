@@ -1,0 +1,10 @@
+---
+import Base from "../layouts/Base.astro";
+import { pageAccueil, FAQ } from "../lib/core.js";
+import { data } from "../lib/data.js";
+import { faqLD } from "../lib/pages.js";
+import { SITE_URL } from "../lib/site-config.js";
+const { cities } = data();
+const ld = [faqLD(FAQ.map(f => [f[0], f[1]])), { "@context": "https://schema.org", "@type": "WebSite", name: "Argile Arena", url: SITE_URL + "/", inLanguage: "fr" }];
+---
+<Base title="Ma maison risque-t-elle de se fissurer ? Test gratuit par adresse | Argile Arena" desc="Sol argileux, sécheresses reconnues dans votre commune : testez gratuitement le risque de fissure de votre maison à partir des données officielles 2026." path="/" html={pageAccueil(cities)} ld={ld} nav="accueil" page="accueil" />

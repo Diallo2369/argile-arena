@@ -1,0 +1,8 @@
+---
+import Base from "../../layouts/Base.astro";
+import { pageDepartements } from "../../lib/core.js";
+import { data } from "../../lib/data.js";
+import { crumbs } from "../../lib/pages.js";
+const { deps } = data();
+---
+<Base title="Risque argile par département et par commune | Argile Arena" desc="Exposition des sols aux argiles et sécheresses reconnues, pour chaque département et chaque commune de France métropolitaine." path="/argile/" html={pageDepartements(deps)} ld={[crumbs(["Départements", "/argile/"])]} page="departements" />

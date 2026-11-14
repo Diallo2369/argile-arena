@@ -1,0 +1,14 @@
+---
+import Base from "../layouts/Base.astro";
+import { editorialPages } from "../lib/pages.js";
+import { data } from "../lib/data.js";
+export function getStaticPaths() {
+  data();   // charge META (date des données)
+  return editorialPages().map(p => ({ params: { path: p.path.replace(/^\/|\/$/g, "") }, props: { id: p.id } }));
+}
+const { id } = Astro.props;
+data();
+const p = editorialPages().find(x => x.id === id);
+const nav = id.startsWith("actu") ? "actualites" : (id === "aides" || id === "guide-fonds") ? "aides" : ["methode", "a-propos", "mentions-legales", "confidentialite"].includes(id) ? "" : "guides";
+---
+<Base title={p.title} desc={p.desc} path={p.path} html={p.render()} ld={p.ld} nav={nav} page={id} />

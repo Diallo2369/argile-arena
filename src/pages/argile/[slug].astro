@@ -1,0 +1,32 @@
+---
+import Base from "../../layouts/Base.astro";
+import { pageCommune, pageDepartement, communeFAQ, communeIndexable, aCommune, enDep, pct } from "../../lib/core.js";
+import { data } from "../../lib/data.js";
+import { crumbs, faqLD } from "../../lib/pages.js";
+export function getStaticPaths() {
+  const { communes, deps } = data();
+  return [
+    ...deps.map(d => ({ params: { slug: d.slug }, props: { kind: "dep", code: d.code } })),
+    ...communes.map(c => ({ params: { slug: c.slug }, props: { kind: "commune", code: c.code } }))
+  ];
+}
+const { kind, code } = Astro.props;
+const D = data();
+let title, desc, html, ld, noindex = false;
+if (kind === "dep") {
+  const d = D.depBy[code], list = D.byDep[code];
+  title = `Argile ${enDep(d.nom)} : risque de fissure par commune | Argile Arena`;
+  desc = `Exposition aux argiles et sécheresses reconnues dans les ${list.length} communes ${enDep(d.nom).replace(/^en /, "de ").replace(/^dans le /, "du ").replace(/^dans les /, "des ")} (${d.code}).`;
+  html = pageDepartement(d, list);
+  ld = [crumbs(["Départements", "/argile/"], [d.nom, `/argile/${d.slug}/`])];
+} else {
+  const c = D.byCode.get(code), d = D.depBy[c.dep];
+  title = `Argile ${aCommune(c.nom)} (${c.dep}) : risque de fissure des maisons | Argile Arena`;
+  const mf = c.rga[2] + c.rga[3];
+  desc = `${aCommune(c.nom).replace(/^./, m => m.toUpperCase())} : ${pct(mf)} du territoire en exposition moyenne ou forte aux argiles, ${c.arretes.length} sécheresse${c.arretes.length > 1 ? "s" : ""} reconnue${c.arretes.length > 1 ? "s" : ""}. Testez votre adresse.`;
+  html = pageCommune(c, d, D.voisins(c));
+  ld = [crumbs([d.nom, `/argile/${d.slug}/`], [c.nom, `/argile/${c.slug}/`]), faqLD(communeFAQ(c))];
+  noindex = !communeIndexable(c);
+}
+---
+<Base title={title} desc={desc} path={`/argile/${Astro.params.slug}/`} html={html} ld={ld} noindex={noindex} page={kind} />

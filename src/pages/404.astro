@@ -1,0 +1,5 @@
+---
+import Base from "../layouts/Base.astro";
+import { page404 } from "../lib/core.js";
+---
+<Base title="Page introuvable | Argile Arena" desc="Cette page n'existe pas." path="/404.html" html={page404()} noindex={true} page="404" />
