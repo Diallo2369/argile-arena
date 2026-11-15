@@ -143,6 +143,7 @@ export const FAQ=[
  ["Mon assurance couvre-t-elle les fissures ?","Oui, si l'État reconnaît la sécheresse dans votre commune par un arrêté de catastrophe naturelle. Vous avez alors 30 jours pour déclarer le sinistre, avec une franchise de 1&nbsp;520&nbsp;€.","guide-assurance","Fissures et assurance"],
  ["Existe-t-il une aide pour protéger ma maison ?","Dans 11 départements, le Fonds prévention argile finance un diagnostic et des travaux de prévention, de 50 % à 90 % selon vos revenus. Ailleurs, les gestes de prévention sont à votre charge.","guide-fonds","Le Fonds prévention argile"],
  ["L'étude de sol est-elle obligatoire pour vendre ?","Pour vendre un terrain à bâtir en zone moyenne ou forte, oui : le vendeur fournit une étude G1, valable 30 ans. Pour une maison déjà construite, la carte n'impose rien.","guide-etude","Étude de sol G1 et G2"],
+ ["Quelle différence avec Géorisques ?","Géorisques est le site officiel de l'État sur tous les risques : il publie la carte des argiles et les arrêtés de catastrophe naturelle, et produit l'état des risques obligatoire pour vendre ou louer. Argile Arena est un site indépendant qui réutilise ces données publiques pour un seul sujet, les fissures : il les croise avec quelques questions sur votre maison, les traduit en un niveau de risque, et dit quoi faire (démarches, délais d'assurance, lettres, aides). Pour un document officiel, c'est Géorisques qui fait foi.","a-propos","Nos sources"],
  ["Le site peut-il dire si ma maison va se fissurer ?","Non. Nous donnons un niveau de risque à partir de données publiques. Seul un professionnel, sur place, peut juger l'état de votre maison et de ses fondations.","a-propos","Nos engagements"]
 ];
 
@@ -676,6 +677,7 @@ export function pageAPropos(){
     <div class="stack"><p class="kicker">Pourquoi ce site</p><p class="quote rv">L'argile ne se voit pas. Ses effets, si.</p></div>
     <div class="stack rv"><p>Plus d'une maison sur deux en France est construite sur un sol qui gonfle quand il pleut et se rétracte quand il fait sec. La plupart des propriétaires l'ignorent jusqu'à la première fissure.</p>
       <p>Les informations existent, mais elles sont dispersées : une carte ici, des arrêtés là, des aides ailleurs. Argile Arena les réunit sur une seule page par adresse, avec une réponse lisible en quelques secondes et des conseils concrets.</p>
+      <p><strong>Un site indépendant.</strong> Argile Arena n'est pas un site de l'État et n'est affilié à aucun assureur. Il réutilise les données publiques, notamment celles de <a href="https://www.georisques.gouv.fr/">Géorisques</a>, le site officiel des risques : Géorisques donne les données et les documents officiels, Argile Arena explique ce qu'elles signifient pour votre maison et quoi faire.</p>
       <p>Le site fait partie de la famille Arena, avec EHPAD Arena, Scol Arena, Eau Arena et Job Arena.</p></div>
   </div></section>
 
