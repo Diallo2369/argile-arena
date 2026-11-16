@@ -16,7 +16,7 @@ export const SOURCES = {
 };
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-async function get(url, type = "json", tries = 4) {
+async function get(url, type = "json", tries = 6) {
   for (let i = 1; ; i++) {
     try {
       const r = await fetch(url, { headers: { "User-Agent": "argilearena.fr (build)" } });
@@ -24,7 +24,7 @@ async function get(url, type = "json", tries = 4) {
       return type === "json" ? await r.json() : new Uint8Array(await r.arrayBuffer());
     } catch (e) {
       if (i >= tries) throw e;
-      console.warn("  nouvel essai", i, e.message); await sleep(2000 * i);
+      console.warn("  nouvel essai", i, e.message); await sleep(5000 * i * i);   // 5 s, 20 s, 45 s, 80 s, 125 s
     }
   }
 }
@@ -47,10 +47,28 @@ function gasparToCsv(text) {
   return out.join("\n");
 }
 
+// Si un service est indisponible, on garde les fichiers de la publication précédente (cache GitHub Actions)
+const have = f => fs.existsSync(path.join(RAW, f));
+async function step(name, files, fn) {
+  try { await fn(); }
+  catch (e) {
+    if (files.every(have)) console.warn(`::warning::${name} indisponible (${e.message}) : données de la publication précédente conservées.`);
+    else throw e;
+  }
+}
+
 async function online() {
+  await step("Découpage administratif (geo.api.gouv.fr)", ["departements.json", "communes.json"], communesStep);
+  await step("Arrêtés GASPAR (files.georisques.fr)", ["catnat_sec.csv", "sources.json"], gasparStep);
+  if (!have("argile-2026.pmtiles")) {
+    console.log("Carte des argiles (PMTiles, ~120 Mo)…");
+    fs.writeFileSync(path.join(RAW, "argile-2026.pmtiles"), await get(SOURCES.pmtiles, "bin"));
+  }
+}
+
+async function communesStep() {
   console.log("Départements…");
   const deps = (await get(`${SOURCES.geoApi}/departements?fields=nom,code`)).filter(d => isMetro(d.code));
-  write("departements.json", deps.map(d => ({ code: d.code, nom: d.nom })));
 
   console.log("Communes et contours…");
   const communes = [];
@@ -63,19 +81,17 @@ async function online() {
     process.stdout.write(d.code + " ");
   }
   console.log(); write("communes.json", communes);
+  write("departements.json", deps.map(d => ({ code: d.code, nom: d.nom })));
+  console.log("OK :", communes.length, "communes");
+}
 
+async function gasparStep() {
   console.log("Arrêtés de catastrophe naturelle (GASPAR)…");
   const zip = unzipSync(await get(SOURCES.gaspar, "bin"));
   const name = Object.keys(zip).find(n => n.startsWith("catnat"));
   if (!name) throw new Error("catnat introuvable dans gaspar.zip");
   write("catnat_sec.csv", gasparToCsv(strFromU8(zip[name])));
   write("sources.json", { gaspar: name, date: new Date().toISOString().slice(0, 10) });
-
-  if (!fs.existsSync(path.join(RAW, "argile-2026.pmtiles"))) {
-    console.log("Carte des argiles (PMTiles, ~120 Mo)…");
-    fs.writeFileSync(path.join(RAW, "argile-2026.pmtiles"), await get(SOURCES.pmtiles, "bin"));
-  }
-  console.log("OK :", communes.length, "communes");
 }
 
 // Jeu de test : fichiers de data.gouv.fr déjà téléchargés, contours approchés par des cercles

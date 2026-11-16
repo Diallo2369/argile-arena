@@ -32,11 +32,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Cache de la carte des argiles
+      # Données de la publication précédente : servent de secours si un service public est indisponible
+      - name: Cache des données publiques
         uses: actions/cache@v4
         with:
-          path: data/raw/argile-2026.pmtiles
-          key: pmtiles-${{ hashFiles('scripts/data.mjs') }}
+          path: data/raw
+          key: raw-${{ github.run_id }}
+          restore-keys: raw-
       - name: Télécharger les données publiques
         run: npm run data:fetch
       - name: Croiser les données
