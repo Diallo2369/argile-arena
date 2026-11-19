@@ -699,7 +699,7 @@ export function pageAPropos(){
       <a href="https://ehpadarena.fr/"><strong>EHPAD Arena</strong><span class="note">Le prix des EHPAD près de chez vous</span></a>
       <a href="https://scolarena.fr/"><strong>Scol Arena</strong><span class="note">Collèges et lycées comparés</span></a>
       <a href="https://eauarena.fr/"><strong>Eau Arena</strong><span class="note">La qualité de l'eau du robinet</span></a>
-      <a href="https://jobarena.org/"><strong>Job Arena</strong><span class="note">Les métiers face à l'IA</span></a></div></div>
+      <a href="https://jobarena.org/fr/"><strong>Job Arena</strong><span class="note">Les métiers face à l'IA</span></a></div></div>
   </div></section>`;
 }
 
