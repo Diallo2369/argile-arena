@@ -19,7 +19,7 @@ const urls = [];
 urls.sort();
 const today = new Date().toISOString().slice(0, 10);
 fs.writeFileSync(path.join(DIST, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `<url><loc>${SITE_URL}${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
-fs.writeFileSync(path.join(DIST, "robots.txt"), NOINDEX ? "User-agent: *\nDisallow: /\n" : `User-agent: *\nAllow: /\nDisallow: /adresse/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+fs.writeFileSync(path.join(DIST, "robots.txt"), NOINDEX ? "User-agent: *\nDisallow: /\n" : `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 fs.writeFileSync(path.join(DIST, ".nojekyll"), "");
 const host = new URL(SITE_URL).hostname;
 if (!host.endsWith("github.io")) fs.writeFileSync(path.join(DIST, "CNAME"), host + "\n");
