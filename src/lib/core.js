@@ -801,7 +801,8 @@ export function suivreHTML(c) {
 }
 export function info2026Text(c) {
   const a = c.arretes.find(a => a[2] >= "2026-01-01"), r = refus2026(c), nom = aCommune(esc(c.nom));
-  if (a) return `La sécheresse de 2026 est reconnue ${nom} (arrêté publié au Journal officiel le ${isoFR(a[3])}). Si vos fissures sont récentes, vous aviez 30 jours après cette date pour les déclarer : contactez vite votre assureur.`;
+  if (a) { const lim = new Date(a[3] + "T12:00:00Z"); lim.setUTCDate(lim.getUTCDate() + 30);
+    return `La sécheresse de 2026 est reconnue ${nom} (arrêté publié au Journal officiel le ${isoFR(a[3])}). Le délai pour déclarer vos fissures à votre assureur court jusqu'au ${isoFR(lim.toISOString().slice(0, 10))}.`; }
   if (r) return `La demande de la commune pour 2026 a été refusée (arrêté publié au Journal officiel le ${isoFR(r[3])}). La commune peut contester cette décision devant le tribunal administratif.`;
   return `Aucun arrêté ne couvre encore 2026 ${nom} : la mairie a 24 mois pour déposer sa demande. Fissures récentes ? Signalez-les dès maintenant à la mairie.`;
 }
