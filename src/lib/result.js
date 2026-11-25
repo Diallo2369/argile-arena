@@ -1,6 +1,6 @@
 // Page résultat d'une adresse : rendue dans le navigateur à partir de la carte, des arrêtés et des réponses
 import { SOL_PTS, ptsSecheresse, niveau, NIV, NIVCOURT, NIVCOL, NIVPHRASE, QUESTIONS, EXPO, PILOTES, PLAN, ico, gauge, mixBar, def, DEFS, vol, pmIcon, shareRow, fondsExplainer, dec,
-  chartAnnees, arretesTable, suivreHTML, aCommune, leDep, esc, has2026, isoFR, isoDMY } from "./core.js";
+  chartAnnees, arretesTable, suivreHTML, aCommune, leDep, esc, has2026, isoFR, isoDMY, info2026Text, refusHTML } from "./core.js";
 
 export const state = { answers: { arbre: null, eau: null, annee: null }, qStep: 0, r: null };
 
@@ -87,7 +87,7 @@ export function pageResultat(r) {
   <section class="blk tight" style="padding-top:12px"><div class="wrap">
     <div class="sec-head" style="margin-bottom:24px"><p class="kicker">La priorité</p><h2>Que faire maintenant ? Votre plan d'action</h2><p class="note">Un plan par étapes : plus le risque est élevé, plus il y a de mesures. Les mesures des niveaux supérieurs restent visibles en gris.</p></div>
     <div class="plan" id="actions">${actionsHTML()}</div>
-    <div class="info rv" style="border-left:5px solid var(--r2)"><strong>Été 2026 : une sécheresse des sols historique.</strong> Selon Météo-France, les sols de France sont restés à un niveau de sécheresse record tout au long de septembre 2026. ${has2026(c) ? `Un arrêté couvre déjà une sécheresse de 2026 ${aCommune(nom)}.` : `Aucun arrêté ne couvre encore 2026 ${aCommune(nom)} : la mairie a 24 mois pour déposer sa demande. Fissures récentes ? Signalez-les dès maintenant à la mairie.`} <a href="/fissure-maison/modeles-de-lettres/">Modèle de lettre</a></div>
+    <div class="info rv" style="border-left:5px solid var(--r2)"><strong>Été 2026 : une sécheresse des sols historique.</strong> Selon Météo-France, les sols de France sont restés à un niveau de sécheresse record tout au long de septembre 2026. ${info2026Text(c)} <a href="/fissure-maison/modeles-de-lettres/">Modèle de lettre</a></div>
     <div class="info rv">${fondsOk ? `${leDep(esc(c.depNom))} fait partie des 11 départements où l'État aide à financer ces gestes, avec le Fonds prévention argile.` : `L'État aide à financer ces gestes dans 11 départements, avec le Fonds prévention argile. ${leDep(esc(c.depNom))} n'en fait pas partie.`} <a href="#vol-fonds" data-openvol="vol-fonds">Comprendre ce fonds</a></div>
     <div class="cta-row"><a class="btn btn-main" href="/fissure-maison/">J'ai déjà des fissures : que faire ?</a><a class="btn btn-ghost" href="/fissure-maison/assurance/" style="color:var(--ink)">Fissures et assurance</a></div>
   </div></section>
@@ -107,7 +107,7 @@ export function pageResultat(r) {
   </div></section>
 
   <section class="blk tight" id="details"><div class="wrap vols">
-    <details class="vol" id="vol-catnat"><summary>${n ? `Les ${n > 1 ? n + " arrêtés" : "arrêté"} « sécheresse » ${aCommune(nom)}` : `Les sécheresses ${aCommune(nom)}`}${pmIcon}</summary><div class="in">${chartAnnees(c)}${n ? arretesTable(c) : ""}<p class="note" style="margin-top:12px">Chaque barre est une année couverte par au moins un arrêté « sécheresse ».</p><div style="margin-top:20px">${suivreHTML(c)}</div></div></details>
+    <details class="vol" id="vol-catnat"><summary>${n ? `Les ${n > 1 ? n + " arrêtés" : "arrêté"} « sécheresse » ${aCommune(nom)}` : `Les sécheresses ${aCommune(nom)}`}${pmIcon}</summary><div class="in">${chartAnnees(c)}${n ? arretesTable(c) : ""}${refusHTML(c)}<p class="note" style="margin-top:12px">Chaque barre est une année couverte par au moins un arrêté « sécheresse ».</p><div style="margin-top:20px">${suivreHTML(c)}</div></div></details>
     <details class="vol" id="vol-fonds"><summary>Le Fonds prévention argile, c'est quoi ?${pmIcon}</summary><div class="in">${fondsExplainer(c.dep, leDep(esc(c.depNom)), nom)}</div></details>
     ${vol("Vous vendez ou achetez un terrain ?", `<p>En zone d'exposition moyenne ou forte, le vendeur d'un terrain à bâtir doit fournir une étude de sol préalable, ${def("dite G1", DEFS.g1)}, valable 30 ans. Pour construire, une étude de conception (G2) est ensuite obligatoire.</p><p style="margin-top:10px"><a href="/etude-de-sol-g1-g2/">Étude de sol G1 et G2 : obligations</a></p>`)}
     <p class="note">Ce que l'indice ne dit pas : la carte décrit des formations géologiques, pas votre parcelle, et l'indice ne connaît ni vos fondations ni l'état de vos murs. <a href="/methode/">Méthode et limites</a></p>

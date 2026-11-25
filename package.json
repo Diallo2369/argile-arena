@@ -18,7 +18,8 @@
     "fflate": "^0.8.3",
     "maplibre-gl": "^6.18.0",
     "pbf": "^5.1.2",
-    "pmtiles": "^4.5.0"
+    "pmtiles": "^4.5.0",
+    "tar-stream": "^3.3.0"
   },
   "type": "module",
   "private": true

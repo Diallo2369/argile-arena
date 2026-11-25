@@ -655,7 +655,7 @@ export function pageMethode(){
 export function pageAPropos(){
   const sources=[
     ["BRGM","Le sol","Bureau de recherches géologiques et minières","La carte d'exposition au retrait-gonflement des argiles 2026 : non exposé, faible, moyen ou fort.","Arrêté du 9 janvier 2026 · en vigueur le 1er juillet 2026","https://www.georisques.gouv.fr/"],
-    ["GASPAR","Les sécheresses","Ministère de la Transition écologique, via Géorisques","Tous les arrêtés de catastrophe naturelle publiés au Journal officiel depuis 1982, commune par commune.","Base mise à jour chaque jour par l'État, relue chaque semaine par le site","https://www.georisques.gouv.fr/"],
+    ["GASPAR + JO","Les sécheresses","Base GASPAR (Géorisques) et Journal officiel (DILA)","Tous les arrêtés de catastrophe naturelle depuis 1982, commune par commune. La base GASPAR ayant plusieurs mois de retard, les arrêtés récents sont lus directement au Journal officiel, avec les communes reconnues et celles refusées.","Relu chaque semaine par le site","https://www.georisques.gouv.fr/"],
     ["INSEE","Les communes","Code officiel géographique, via l'API Découpage administratif","Le nom, les codes postaux et les limites de chaque commune, pour calculer la part du territoire exposée.","Mise à jour chaque semaine","https://geo.api.gouv.fr/"],
     ["IGN","Les adresses","Géoplateforme de l'IGN","La recherche d'adresse : votre saisie est envoyée au service public de géocodage de l'IGN pour la placer sur la carte. Nous ne la conservons pas.","Service en ligne, mis à jour en continu","https://geoservices.ign.fr/documentation/services/services-geoplateforme/geocodage"]
   ];
@@ -758,6 +758,13 @@ export const leDep = nom => { const a = DEP_ART[nom]; return a === "le" ? "Le " 
 // ---------- Données d'une commune (communes.json)
 export const expoMain = c => c.rga[3] >= 50 ? 3 : c.rga[2] + c.rga[3] >= 50 ? (c.rga[3] > c.rga[2] ? 3 : 2) : c.rga[1] + c.rga[2] + c.rga[3] >= 50 ? 1 : 0;
 export const has2026 = c => c.arretes.some(a => a[2] >= "2026-01-01");
+export const refus2026 = c => (c.refus || []).find(r => r[2] >= "2026-01-01");
+export const MOTIF = { m: "la sécheresse n'a pas été jugée assez exceptionnelle (critère météorologique)", g: "pas assez d'argile sensible sur la commune (critère géotechnique)", mg: "ni le critère météorologique ni le critère géotechnique ne sont remplis" };
+export function refusHTML(c) {
+  const R = c.refus || []; if (!R.length) return "";
+  return `<div class="refus rv"><h3>${R.length > 1 ? "Demandes refusées" : "Demande refusée"}</h3><ul>${R.map(r => `<li><b>Sécheresse du ${isoDMY(r[1])} au ${isoDMY(r[2])} : non reconnue.</b> Arrêté ${r[0]}, publié au Journal officiel le ${isoFR(r[3])}.${MOTIF[r[4]] ? ` Motif : ${MOTIF[r[4]]}.` : ""}</li>`).join("")}</ul>
+   <p class="note">La commune peut contester la décision devant le tribunal administratif, dans les deux mois qui suivent sa notification par le préfet. Une nouvelle demande reste possible pour une autre période.</p></div>`;
+}
 export const georisquesURL = c => `https://www.georisques.gouv.fr/mes-risques/connaitre-les-risques-pres-de-chez-moi/rapport2/${c.code}/${encodeURIComponent(c.nom.toUpperCase())}/commune/${(c.cp && c.cp[0]) || ""}`;
 
 export function chartAnnees(c) {
@@ -789,12 +796,16 @@ export function suivreHTML(c) {
   return `<div class="suivre rv"><div><h3>Suivre les arrêtés ${aCommune(esc(c.nom))}, sans inscription</h3>
     <p>${has2026(c) ? "Un nouvel arrêté peut encore paraître." : "Un arrêté pour la sécheresse de 2026 peut paraître dans les prochains mois."} Vous aurez alors 30 jours pour déclarer vos fissures.</p></div>
     <div class="btns"><button class="btn btn-main btn-sm" type="button" data-ics="${esc(c.nom)}" data-url="/argile/${c.slug}/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Me rappeler de vérifier</button>
-    ${c.arretes.length ? `<a class="btn btn-ghost btn-sm" href="/argile/${c.slug}/arretes.xml" style="color:var(--ink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/></svg>Flux RSS des arrêtés</a>` : ""}</div>
+    ${c.arretes.length || (c.refus || []).length ? `<a class="btn btn-ghost btn-sm" href="/argile/${c.slug}/arretes.xml" style="color:var(--ink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 11a8 8 0 0 1 8 8M5 5a14 14 0 0 1 14 14"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/></svg>Flux RSS des arrêtés</a>` : ""}</div>
     <p class="note msg" aria-live="polite">Le rappel s'ajoute à votre agenda (tous les 3 mois, pendant 2 ans). Aucune adresse e-mail demandée.</p></div>`;
 }
-const INFO2026 = c => `<div class="info rv" style="border-left:5px solid var(--r2)"><strong>Été 2026 : une sécheresse des sols historique.</strong> Selon Météo-France, les sols de France sont restés à un niveau de sécheresse record tout au long de septembre 2026. ${has2026(c)
-  ? `Un arrêté couvre déjà une sécheresse de 2026 ${aCommune(esc(c.nom))} : si vos fissures sont récentes, vérifiez le délai de déclaration.`
-  : `Aucun arrêté ne couvre encore 2026 ${aCommune(esc(c.nom))} : la mairie a 24 mois pour déposer sa demande. Fissures récentes ? Signalez-les dès maintenant à la mairie.`} <a href="#lettres">Modèle de lettre</a></div>`;
+export function info2026Text(c) {
+  const a = c.arretes.find(a => a[2] >= "2026-01-01"), r = refus2026(c), nom = aCommune(esc(c.nom));
+  if (a) return `La sécheresse de 2026 est reconnue ${nom} (arrêté publié au Journal officiel le ${isoFR(a[3])}). Si vos fissures sont récentes, vous aviez 30 jours après cette date pour les déclarer : contactez vite votre assureur.`;
+  if (r) return `La demande de la commune pour 2026 a été refusée (arrêté publié au Journal officiel le ${isoFR(r[3])}). La commune peut contester cette décision devant le tribunal administratif.`;
+  return `Aucun arrêté ne couvre encore 2026 ${nom} : la mairie a 24 mois pour déposer sa demande. Fissures récentes ? Signalez-les dès maintenant à la mairie.`;
+}
+const INFO2026 = c => `<div class="info rv" style="border-left:5px solid var(--r2)"><strong>Été 2026 : une sécheresse des sols historique.</strong> Selon Météo-France, les sols de France sont restés à un niveau de sécheresse record tout au long de septembre 2026. ${info2026Text(c)} <a href="#lettres">Modèle de lettre</a></div>`;
 
 // Phrase d'introduction d'une commune
 export function communeLead(c) {
@@ -808,7 +819,7 @@ export function communeLead(c) {
   const sec = n ? `L'État y a reconnu la sécheresse comme catastrophe naturelle ${n === 1 ? "une fois" : n + " fois"} depuis 1989.` : `Aucune sécheresse n'y a été reconnue comme catastrophe naturelle depuis 1989.`;
   return `${aCommune(esc(c.nom)).replace(/^./, m => m.toUpperCase())}, ${sol}. ${sec}`;
 }
-export const communeIndexable = c => c.rga[2] + c.rga[3] >= 1 || c.arretes.length > 0;
+export const communeIndexable = c => c.rga[2] + c.rga[3] >= 1 || c.arretes.length > 0 || (c.refus || []).length > 0;
 
 export function pageCommune(c, d, voisins) {
   const n = c.arretes.length, last = c.arretes[0], mf = c.rga[2] + c.rga[3], fondsOk = !!PILOTES[c.dep];
@@ -832,8 +843,9 @@ export function pageCommune(c, d, voisins) {
       <p class="note">Le niveau peut changer d'une rue à l'autre : seule votre adresse donne le niveau de votre maison. En exposition moyenne ou forte, une étude de sol est obligatoire pour vendre un terrain à bâtir. <a href="#guide-etude">En savoir plus</a></p>
     </div>
     ${mf >= 1 || n ? INFO2026(c) : ""}
-    <div class="ig rv" id="arretes"><h3>Les sécheresses reconnues ${aCommune(nom)}</h3>${chartAnnees(c)}${n ? `<details class="vol" style="margin-top:14px"><summary>Voir ${n > 1 ? `les ${n} arrêtés` : "l'arrêté"}${pmIcon}</summary><div class="in">${arretesTable(c)}</div></details>` : `<p class="note" style="margin-top:12px">Aucun arrêté « sécheresse » depuis 1989. <a href="${georisquesURL(c)}">Fiche Géorisques ↗</a></p>`}<p class="src">Sources : base GASPAR (arrêtés), via Géorisques ; carte d'exposition 2026 (BRGM), via data.gouv.fr. Données relevées le ${META.dateFR}.</p></div>
-    ${mf >= 1 || n ? suivreHTML(c) : ""}
+    <div class="ig rv" id="arretes"><h3>Les sécheresses reconnues ${aCommune(nom)}</h3>${chartAnnees(c)}${n ? `<details class="vol" style="margin-top:14px"><summary>Voir ${n > 1 ? `les ${n} arrêtés` : "l'arrêté"}${pmIcon}</summary><div class="in">${arretesTable(c)}</div></details>` : `<p class="note" style="margin-top:12px">Aucun arrêté « sécheresse » depuis 1989. <a href="${georisquesURL(c)}">Fiche Géorisques ↗</a></p>`}<p class="src">Sources : base GASPAR via Géorisques et Journal officiel (arrêtés) ; carte d'exposition 2026 (BRGM), via data.gouv.fr. Données relevées le ${META.dateFR}.</p></div>
+    ${refusHTML(c)}
+    ${mf >= 1 || n || (c.refus || []).length ? suivreHTML(c) : ""}
     <div class="here rv" id="fonds"><strong>Le Fonds prévention argile ${fondsOk ? `: ${enDep(esc(d.nom))}, c'est possible` : `: pas encore ${enDep(esc(d.nom))}`}</strong><span>Cette aide de l'État finance un diagnostic et des travaux de prévention, de 50 % à 90 % selon les revenus, pour les maisons en exposition forte de 11 départements.${fondsOk ? " Vérifiez votre éligibilité sur le simulateur officiel." : " Le gouvernement devait décider à l'automne 2026 s'il l'étend ; aucune extension n'est annoncée à ce jour."}</span><span><a href="#guide-fonds">Conditions et montants ›</a></span></div>
     <div class="stack"><h2>Fissures : les bons réflexes</h2>
       <div class="feed">${GUIDES.filter(g => ["guide-fissure", "guide-grave", "guide-assurance", "lettres"].includes(g.id)).map(g => `<a class="fitem" href="#${g.id}"><span class="fic" style="background:${G_ICONS[g.id][1]}">${G_ICONS[g.id][0]}</span><span class="ftx"><b>${g.t}</b><small>${g.s}</small></span><span class="fgo" aria-hidden="true">›</span></a>`).join("")}</div></div>

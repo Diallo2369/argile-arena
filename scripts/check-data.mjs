@@ -18,5 +18,12 @@ for (const c of communes) {
 }
 const withSec = communes.filter(c => c.arretes.length).length;
 if (full && withSec < 10000) fail(`seulement ${withSec} communes avec un arrêté sécheresse`);
+const sources = JSON.parse(fs.readFileSync("data/site/sources.json", "utf8"));
+if (full) {
+  const lastJo = communes.flatMap(c => [...c.arretes.map(a => a[3]), ...(c.refus || []).map(r => r[3])]).sort().at(-1);
+  const age = (Date.now() - new Date(lastJo)) / 864e5;
+  if (age > 150) fail(`dernier arrêté sécheresse publié le ${lastJo} : données trop anciennes (Journal officiel non lu ?)`);
+  console.log(`Dernier arrêté sécheresse publié : ${lastJo} ; dernier JO lu : ${sources.jorf || "—"}`);
+}
 const expo = communes.filter(c => c.rga[2] + c.rga[3] >= 50).length / communes.length;
 console.log(`Contrôle OK : ${communes.length} communes, ${deps.length} départements, ${withSec} avec sécheresse reconnue, ${Math.round(expo * 100)} % surtout en exposition moyenne ou forte.`);

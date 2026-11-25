@@ -98,7 +98,7 @@ export async function communeData(citycode) {
   const code = commOf(citycode), dep = depOf(code), [dd, di] = await Promise.all([depData(dep), depInfo(dep)]);
   const c = dd && dd[code];
   if (!c || !di) return null;
-  return { code, nom: c.n, slug: c.s, arretes: c.a, annees: c.y, rga: c.r, dep, depNom: di.nom, depSlug: di.slug, cp: [] };
+  return { code, nom: c.n, slug: c.s, arretes: c.a, annees: c.y, rga: c.r, refus: c.f || [], dep, depNom: di.nom, depSlug: di.slug, cp: [] };
 }
 
 /* ---------- Recherche d'adresse (Géoplateforme de l'IGN) ---------- */
@@ -255,9 +255,10 @@ function communePicker(input, onPick) {
 const s26 = $("#s26");
 if (s26) communePicker($("#q3"), c => {
   if (!c) { s26.innerHTML = `<p class="note" style="margin-top:14px">Commune introuvable dans nos données (la carte des argiles ne couvre que la France métropolitaine).</p>`; return; }
-  const a26 = c.arretes.filter(a => a[2] >= "2026-01-01"), last = c.arretes[0];
+  const a26 = c.arretes.filter(a => a[2] >= "2026-01-01"), last = c.arretes[0], r26 = (c.refus || []).find(r => r[2] >= "2026-01-01");
   s26.innerHTML = `<div class="here" style="margin-top:16px">${a26.length
     ? `<strong>${c.nom} : la sécheresse de 2026 est reconnue.</strong><span>Arrêté publié au Journal officiel le ${isoFR(a26[0][3])}, pour la période du ${isoDMY(a26[0][1])} au ${isoDMY(a26[0][2])}. Vous avez 30 jours après cette date pour déclarer vos fissures.</span>`
+    : r26 ? `<strong>${c.nom} : la demande pour 2026 a été refusée.</strong><span>Arrêté publié au Journal officiel le ${isoFR(r26[3])}. La commune peut contester la décision devant le tribunal administratif.</span>`
     : `<strong>${c.nom} : pas encore d'arrêté « sécheresse » pour 2026.</strong><span>${last ? `Le dernier arrêté sécheresse de la commune a été publié au Journal officiel le ${isoFR(last[3])}.` : "Aucun arrêté sécheresse depuis 1989."}</span>`}
     <span><a href="/argile/${c.slug}/">Tout sur l'argile à ${c.nom} ›</a></span></div>`;
 });

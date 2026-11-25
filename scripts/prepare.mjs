@@ -24,6 +24,36 @@ for (const l of fs.readFileSync(path.join(RAW, "catnat_sec.csv"), "utf8").trim()
   if (!a) m.set(k, { ref, deb, fin, jo, periodes: [[deb, fin]] });
   else { if (deb < a.deb) a.deb = deb; if (fin > a.fin) a.fin = fin; a.periodes.push([deb, fin]); }
 }
+// --- Journal officiel (DILA) : décisions publiées depuis 2025, reconnues ou refusées
+// Les annexes donnent le nom du département et de la commune : on les rattache au code INSEE.
+const nz = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae").replace(/[^a-z0-9]+/g, " ").trim();
+const depByName = new Map(deps.map(d => [nz(d.nom), d.code]));
+const comByKey = new Map(communes.map(c => [c.dep + "|" + nz(c.nom), c.code]));
+const refus = new Map();
+const jorfF = path.join(RAW, "jorf_catnat.json");
+let jorfOk = 0, jorfMiss = [], jorfLast = "";
+if (fs.existsSync(jorfF)) for (const [ref, jo, ok, depNom, comNom, , deb, fin, motif] of JSON.parse(fs.readFileSync(jorfF, "utf8"))) {
+  const dep = depByName.get(nz(depNom)); const code = dep && comByKey.get(dep + "|" + nz(comNom));
+  if (!code) { jorfMiss.push(`${comNom} (${depNom})`); continue; }
+  jorfOk++; if (jo > jorfLast) jorfLast = jo;
+  if (ok) {
+    if (!cat.has(code)) cat.set(code, new Map());
+    const m = cat.get(code), k = ref + "|" + jo, a = m.get(k);
+    if (!a) m.set(k, { ref, deb, fin, jo, periodes: [[deb, fin]] });
+    else if (!a.periodes.some(p => p[0] === deb && p[1] === fin)) { if (deb < a.deb) a.deb = deb; if (fin > a.fin) a.fin = fin; a.periodes.push([deb, fin]); }
+  } else {
+    if (!refus.has(code)) refus.set(code, new Map());
+    refus.get(code).set(ref + "|" + deb, [ref, deb, fin, jo, motif]);
+  }
+}
+console.log(`JO : ${jorfOk} décisions rattachées à une commune, ${jorfMiss.length} non rattachées${jorfMiss.length ? " (ex. " + jorfMiss.slice(0, 8).join(", ") + ")" : ""} ; dernier JO : ${jorfLast || "—"}`);
+// Un refus suivi d'une reconnaissance pour la même période (recours) n'est plus affiché
+function refusDe(code) {
+  const m = refus.get(code); if (!m) return [];
+  const rec = cat.get(code) ? [...cat.get(code).values()] : [];
+  return [...m.values()].filter(r => !rec.some(a => a.periodes.some(p => p[0] <= r[2] && p[1] >= r[1]) && a.jo > r[3])).sort((a, b) => b[3].localeCompare(a[3]));
+}
+
 function arretes(code) {
   const m = cat.get(code); if (!m) return { list: [], annees: [] };
   const list = [...m.values()].sort((a, b) => b.jo.localeCompare(a.jo));
@@ -75,7 +105,7 @@ for (const d of deps) {
     let slug = slugify(c.nom) + "-" + c.code; usedSlugs.add(slug);
     out.push({ code: c.code, nom: c.nom, dep: c.dep, slug, cp: [...new Set(c.cp)].sort(), lat: c.lat, lon: c.lon, pop: c.pop,
       rga: rga || [centre === 0 ? 100 : 0, centre === 1 ? 100 : 0, centre === 2 ? 100 : 0, centre === 3 ? 100 : 0], centre,
-      arretes: a.list, annees: a.annees });
+      arretes: a.list, annees: a.annees, refus: refusDe(c.code) });
   }
   process.stdout.write(d.code + " ");
 }
@@ -85,9 +115,9 @@ fs.writeFileSync(path.join(OUT, "communes.json"), JSON.stringify(out));
 const depsOut = deps.map(d => ({ ...d, slug: slugify(d.nom) + "-" + d.code }));
 fs.writeFileSync(path.join(OUT, "departements.json"), JSON.stringify(depsOut));
 fs.writeFileSync(path.join(PUB, "departements.json"), JSON.stringify(depsOut));
-fs.writeFileSync(path.join(OUT, "sources.json"), JSON.stringify(sources));
+fs.writeFileSync(path.join(OUT, "sources.json"), JSON.stringify({ ...sources, jorf: jorfLast }));
 for (const d of deps) {
   const light = {};
-  for (const c of out.filter(c => c.dep === d.code)) light[c.code] = { n: c.nom, s: c.slug, a: c.arretes, y: c.annees, r: c.rga };
+  for (const c of out.filter(c => c.dep === d.code)) light[c.code] = { n: c.nom, s: c.slug, a: c.arretes, y: c.annees, r: c.rga, f: c.refus };
   fs.writeFileSync(path.join(PUB, "dep", d.code + ".json"), JSON.stringify(light));
 }

@@ -4,6 +4,7 @@
 import fs from "fs";
 import path from "path";
 import { unzipSync, strFromU8 } from "fflate";
+import { updateJorf, parseArticle } from "./jorf.mjs";
 
 const RAW = "data/raw";
 fs.mkdirSync(path.join(RAW, "contours"), { recursive: true });
@@ -60,6 +61,7 @@ async function step(name, files, fn) {
 async function online() {
   await step("Découpage administratif (geo.api.gouv.fr)", ["departements.json", "communes.json"], communesStep);
   await step("Arrêtés GASPAR (files.georisques.fr)", ["catnat_sec.csv", "sources.json"], gasparStep);
+  await step("Journal officiel (DILA)", ["jorf_catnat.json"], async () => { console.log("Arrêtés publiés au Journal officiel…"); await updateJorf(RAW); });
   if (!have("argile-2026.pmtiles")) {
     console.log("Carte des argiles (PMTiles, ~120 Mo)…");
     fs.writeFileSync(path.join(RAW, "argile-2026.pmtiles"), await get(SOURCES.pmtiles, "bin"));
@@ -129,6 +131,8 @@ function fixtures() {
   out.push(...fs.readFileSync("scripts/fixtures/toulouse-gaspar.csv", "utf8").trim().split("\n"));
   write("catnat_sec.csv", out.join("\n"));
   write("sources.json", { gaspar: "fixtures", date: new Date().toISOString().slice(0, 10) });
+  const jx = fs.readFileSync("scripts/fixtures/jorf-annexes.xml", "utf8").split("</ARTICLE>").filter(x => x.includes("<ARTICLE")).flatMap(x => parseArticle(x + "</ARTICLE>")).filter(r => /s[ée]cheresse/i.test(r[5]));
+  write("jorf_catnat.json", jx);
   if (!fs.existsSync(path.join(RAW, "argile-2026.pmtiles"))) fs.symlinkSync(`${SRC}/argile-2026.pmtiles`, path.join(RAW, "argile-2026.pmtiles"));
   console.log("Jeu de test :", deps.length, "départements,", communes.length, "communes");
 }
