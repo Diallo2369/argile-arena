@@ -26,7 +26,9 @@ for (const l of fs.readFileSync(path.join(RAW, "catnat_sec.csv"), "utf8").trim()
 }
 // --- Journal officiel (DILA) : décisions publiées depuis 2025, reconnues ou refusées
 // Les annexes donnent le nom du département et de la commune : on les rattache au code INSEE.
-const nz = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae").replace(/[^a-z0-9]+/g, " ").trim();
+// « Crèche (La) » -> « La Crèche », « Écorces (Les) » -> « Les Écorces », « Abergement (L') » -> « L'Abergement »
+const deArt = t => t.replace(/^(.+?)\s*\((L'|La|Le|Les)\)\s*(.*)$/i, (m, n, a, rest) => `${a}${a.endsWith("'") ? "" : " "}${n}${rest ? " " + rest : ""}`);
+const nz = t => deArt(t.trim()).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/œ/g, "oe").replace(/æ/g, "ae").replace(/[^a-z0-9]+/g, " ").trim();
 const depByName = new Map(deps.map(d => [nz(d.nom), d.code]));
 const comByKey = new Map(communes.map(c => [c.dep + "|" + nz(c.nom), c.code]));
 const refus = new Map();
